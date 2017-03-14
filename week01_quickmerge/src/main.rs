@@ -20,4 +20,6 @@ fn main() {
     m.union(7, 3);
 
     println!("{}", m);
+
+    println!("\n\n{}", m);
 }
