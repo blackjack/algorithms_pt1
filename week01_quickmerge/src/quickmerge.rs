@@ -1,26 +1,44 @@
 use std::fmt::{Display, Formatter, Error};
 
 #[derive(Debug)]
+
 pub struct QuickMerge {
-    id: Vec<i32>,
+    sz: Vec<u32>,
+    id: Vec<u32>,
 }
 
 impl QuickMerge {
     pub fn new(len: usize) -> QuickMerge {
-        let mut res = QuickMerge { id: Vec::new() };
+        let mut res = QuickMerge {
+            id: Vec::new(),
+            sz: Vec::new(),
+        };
         res.id.reserve(len);
         for i in 0..len {
-            res.id.push(i as i32);
+            res.id.push(i as u32);
         }
+        res.sz.resize(len, 1);
         res
     }
 
-    pub fn union(&mut self, p: i32, q: i32) {
-        let pid = self.root(p) as usize;
-        self.id[pid as usize] = self.root(q);
+    pub fn union(&mut self, p: u32, q: u32) {
+        let i = self.root(p) as usize;
+        let j = self.root(q) as usize;
+
+        if i == j {
+            return;
+        }
+
+        if self.sz[i] < self.sz[j] {
+            self.id[i] = j as u32;
+            self.sz[j] += self.sz[i];
+        } else {
+            self.id[j] = i as u32;
+            self.sz[i] += self.sz[j];
+        }
     }
 
-    pub fn root(&self, i: i32) -> i32 {
+    pub fn root(&self, i: u32) -> u32 {
         let mut idx = i;
         while idx != self.id[idx as usize] {
             idx = self.id[idx as usize];
@@ -28,7 +46,7 @@ impl QuickMerge {
         idx
     }
 
-    pub fn connected(&self, p: i32, q: i32) -> bool {
+    pub fn connected(&self, p: u32, q: u32) -> bool {
         self.root(p) == self.root(q)
     }
 }
@@ -36,11 +54,15 @@ impl QuickMerge {
 impl Display for QuickMerge {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         for i in 0..self.id.len() {
-            write!(f, "{:2}", i)?;
+            write!(f, "{:4}", i)?;
         }
         write!(f, "\n")?;
         for i in 0..self.id.len() {
-            write!(f, "{:2}", self.id[i])?;
+            write!(f, "[{:2}]", self.id[i])?;
+        }
+        write!(f, "\n")?;
+        for i in 0..self.id.len() {
+            write!(f, "{:4}", self.sz[i])?;
         }
         Ok(())
     }
@@ -48,12 +70,28 @@ impl Display for QuickMerge {
 
 
 #[test]
-fn simple() {
-    let mut m = QuickMerge::new(5);
-    m.union(1, 2);
-    m.union(3, 1);
-    assert!(m.root(1) == 2);
-    assert!(m.root(3) == 2);
-    assert!(m.connected(1, 2));
-    assert!(m.connected(1, 3));
+fn weight_merge() {
+    let mut m = QuickMerge::new(10);
+
+    m.union(4, 3);
+    m.union(3, 8);
+    m.union(6, 5);
+    m.union(9, 4);
+
+    assert_eq!(m.root(9), 4);
+
+    m.union(2, 1);
+    m.union(5, 0);
+
+    assert_eq!(m.root(0), 6);
+
+    m.union(7, 2);
+    m.union(6, 1);
+
+    assert_eq!(m.root(1), 6);
+    assert_eq!(m.id[1], 2);
+
+    m.union(7, 3);
+
+    assert_eq!(m.id, vec![6, 2, 6, 4, 6, 6, 6, 2, 4, 4]);
 }
