@@ -1,10 +1,9 @@
 use std::fmt::{Display, Formatter, Error};
 
 #[derive(Debug)]
-
 pub struct QuickMerge {
-    sz: Vec<u32>,
-    id: Vec<u32>,
+    pub sz: Vec<usize>,
+    pub id: Vec<u32>,
 }
 
 impl QuickMerge {
@@ -34,6 +33,8 @@ impl QuickMerge {
             self.sz[j] += self.sz[i];
         } else {
             self.id[j] = i as u32;
+            print!("Sz[{}]={}\n",i,self.sz[i]);
+            print!("Sz[{}]={}\n",j,self.sz[j]);
             self.sz[i] += self.sz[j];
         }
     }
@@ -46,6 +47,7 @@ impl QuickMerge {
             // Path compression
             self.id[idx] = parent_idx;
             self.sz[parent_idx as usize] -= self.sz[idx];
+            self.sz[self.id[parent_idx as usize] as usize] += self.sz[idx];
 
             // Move to parent
             idx = self.id[idx] as usize;
@@ -76,3 +78,4 @@ impl Display for QuickMerge {
         Ok(())
     }
 }
+
