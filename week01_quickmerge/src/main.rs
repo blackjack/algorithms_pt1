@@ -2,31 +2,16 @@ extern crate rand;
 
 mod quickmerge;
 mod percolation;
+mod percolation_stats;
 
-use percolation::Percolation;
-use rand::distributions::{IndependentSample, Range};
-
+use percolation_stats::PercolationStats;
 
 fn main() {
-    let x = 2000;
-    let y = 2000;
+    let mut args = std::env::args();
+    args.next();
+    let grid: usize = args.next().unwrap().parse().unwrap();
+    let times: usize = args.next().unwrap().parse().unwrap();
 
-    let mut percolation = Percolation::new(x, y);
-
-    let between = Range::new(1, x * y);
-    let mut rng = rand::thread_rng();
-
-    while {
-        let sample = between.ind_sample(&mut rng);
-        let row = sample / y + 1;
-        let column = sample % y + 1;
-        percolation.open(row, column);
-
-        !percolation.percolates()
-    } {}
-
-    let total = percolation.last - 1;
-    let open = percolation.number_of_open_sites();
-    let ratio = open as f32 / total as f32;
-    println!("Total: {}, Open: {}, Ratio: {}", total, open, ratio);
+    let stats = PercolationStats::new(grid, times);
+    println!("{}", stats);
 }
