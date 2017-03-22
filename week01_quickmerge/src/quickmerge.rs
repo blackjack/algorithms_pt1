@@ -3,9 +3,10 @@ use std::fmt::{Display, Formatter, Error};
 #[derive(Debug)]
 pub struct QuickMerge {
     pub sz: Vec<usize>,
-    pub id: Vec<u32>,
+    pub id: Vec<usize>,
 }
 
+#[allow(dead_code)]
 impl QuickMerge {
     pub fn new(len: usize) -> QuickMerge {
         let mut res = QuickMerge {
@@ -14,48 +15,46 @@ impl QuickMerge {
         };
         res.id.reserve(len);
         for i in 0..len {
-            res.id.push(i as u32);
+            res.id.push(i);
         }
         res.sz.resize(len, 1);
         res
     }
 
-    pub fn union(&mut self, p: u32, q: u32) {
-        let i = self.root(p) as usize;
-        let j = self.root(q) as usize;
+    pub fn union(&mut self, p: usize, q: usize) {
+        let i = self.root(p);
+        let j = self.root(q);
 
         if i == j {
             return;
         }
 
         if self.sz[i] < self.sz[j] {
-            self.id[i] = j as u32;
+            self.id[i] = j;
             self.sz[j] += self.sz[i];
         } else {
-            self.id[j] = i as u32;
-            print!("Sz[{}]={}\n",i,self.sz[i]);
-            print!("Sz[{}]={}\n",j,self.sz[j]);
+            self.id[j] = i;
             self.sz[i] += self.sz[j];
         }
     }
 
-    pub fn root(&mut self, i: u32) -> u32 {
-        let mut idx = i as usize;
-        while idx != self.id[idx] as usize {
-            let parent_idx = self.id[self.id[idx] as usize];
+    pub fn root(&mut self, i: usize) -> usize {
+        let mut idx = i;
+        while idx != self.id[idx] {
+            let parent_idx = self.id[self.id[idx]];
 
             // Path compression
             self.id[idx] = parent_idx;
-            self.sz[parent_idx as usize] -= self.sz[idx];
-            self.sz[self.id[parent_idx as usize] as usize] += self.sz[idx];
+            self.sz[parent_idx] -= self.sz[idx];
+            self.sz[self.id[parent_idx]] += self.sz[idx];
 
             // Move to parent
-            idx = self.id[idx] as usize;
+            idx = self.id[idx];
         }
-        idx as u32
+        idx
     }
 
-    pub fn connected(&mut self, p: u32, q: u32) -> bool {
+    pub fn connected(&mut self, p: usize, q: usize) -> bool {
         self.root(p) == self.root(q)
     }
 }

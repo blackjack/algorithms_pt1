@@ -1,36 +1,32 @@
+extern crate rand;
+
 mod quickmerge;
-use quickmerge::QuickMerge;
+mod percolation;
 
-struct SocialGraph {
-    m: QuickMerge,
-}
-
-impl SocialGraph {
-    fn new(len: usize) -> SocialGraph {
-        SocialGraph { m: QuickMerge::new(len) }
-    }
-
-    fn connect(&mut self, user1: u32, user2: u32) -> bool {
-        self.m.union(user1, user2);
-
-        let root = self.m.root(user1) as usize;
-        return self.m.sz[root] == self.m.sz.len();
-    }
-}
-
-
-
-
-fn num_roots() {
-    let mut m = SocialGraph::new(3);
-
-    print!("{}\n", m.connect(0, 1));
-    print!("{}\n", m.m);
-    print!("{}\n", m.connect(1, 2));
-    print!("{}\n", m.m);
-}
+use percolation::Percolation;
+use rand::distributions::{IndependentSample, Range};
 
 
 fn main() {
-    num_roots();
+    let x = 2000;
+    let y = 2000;
+
+    let mut percolation = Percolation::new(x, y);
+
+    let between = Range::new(1, x * y);
+    let mut rng = rand::thread_rng();
+
+    while {
+        let sample = between.ind_sample(&mut rng);
+        let row = sample / y + 1;
+        let column = sample % y + 1;
+        percolation.open(row, column);
+
+        !percolation.percolates()
+    } {}
+
+    let total = percolation.last - 1;
+    let open = percolation.number_of_open_sites();
+    let ratio = open as f32 / total as f32;
+    println!("Total: {}, Open: {}, Ratio: {}", total, open, ratio);
 }
